@@ -35,7 +35,7 @@ def load_model(weights,device,imgsz):
 
     return model,names,pt
 
-weights = './runs/train/gesture-fly-v3/weights/best.pt'
+weights = 'v9_c_best.pt'
 device = 0 # cuda device, i.e. 0 or 0,1,2,3 or cpu
 imgsz=(640, 640)
 model,names,_=load_model(weights,device,imgsz)
@@ -172,7 +172,7 @@ def inference(im,model,names,line_thickness):
     # NMS
     with dt[2]:
         pred = non_max_suppression(prediction=pred,
-                                    conf_thres=0.70,
+                                    conf_thres=0.50,
                                     iou_thres=0.45,
                                     agnostic=False,
                                     max_det=1000)
@@ -220,9 +220,9 @@ def get_frame():
    
 
     
-    threshold = 2
+    threshold = 10
     previous_predicted_class = []
-    classes_counter = {'left':0,'right':0,'up':0,'down':0,'back':0,'forward':0,'land':0,'picture':0}
+    classes_counter = {'left':0,'right':0,'up':0,'down':0,'backward':0,'forward':0,'land':0,'picture':0}
     
     
     with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh, \
@@ -320,7 +320,7 @@ def get_frame():
                     is_empthy=not exceeding_threshold
                     if not is_empthy:
                         print(f'predicted class is: {exceeding_threshold}')
-                        classes_counter = {'left':0,'right':0,'up':0,'down':0,'back':0,'forward':0,'land':0,'picture':0}
+                        classes_counter = {'left':0,'right':0,'up':0,'down':0,'backward':0,'forward':0,'land':0,'picture':0}
                         class_action=list(exceeding_threshold.keys())[0]
                         if class_action == 'up':
                             signal_up = True
@@ -343,7 +343,7 @@ def get_frame():
                         elif class_action == 'land':
                             signal_land = True
                             cmd = "LAND"
-                        elif class_action == 'back':
+                        elif class_action == 'backward':
                             signal_backward=True
                             cmd = "BACK"
                         elif class_action == 'forward':
