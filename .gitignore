@@ -1,5 +1,7 @@
 /data
 /weights
 /runs
-
+/pictures
+/__pycache__/
 *.pt
+

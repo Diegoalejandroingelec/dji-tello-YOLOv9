@@ -21,6 +21,8 @@ from utils.plots import Annotator, colors
 from utils.torch_utils import select_device
 import operator 
 import mediapipe as mp
+from FaceRecognitionC import identify_user
+import pickle
 
 pygame.init()
 def load_model(weights,device,imgsz):
@@ -50,6 +52,12 @@ mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh()
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
+
+with open('embeddings.pkl', 'rb') as f:
+    FaceEmbeddings = loaded_embeddings_dict = pickle.load(f)
+
+FaceEncodings= FaceEmbeddings["FaceEmbeddings_new"]
+FaceNames = FaceEmbeddings["FaceNames"]
 
 def draw_face_and_hands(frame, face_landmarks, hand_landmarks):
     # Get the center of the frame (x-coordinate)
@@ -143,6 +151,9 @@ signal_forward=False
 flying = False
 is_rotating_clockwise = False
 is_rotating_counter_clockwise = False
+original_frame = None
+start_time = time.time()
+
 cmd = "_"
 
 
@@ -199,6 +210,26 @@ def inference(im,model,names,line_thickness):
     
     return predicted_classes,im0
 
+# def add_counter():
+#     global counter
+#     while True:
+#         counter += 1
+#         time.sleep(1)
+
+
+def perform_face_recognition(original_frame):
+    global start_time
+    try:
+        current_time = time.time()  # Get the current time
+        elapsed_time = current_time - start_time  # Calculate elapsed time
+        
+        if elapsed_time >= 10:  # Check if 10 seconds have passed
+            #print('authenticated')
+            identify_user(original_frame,FaceNames,FaceEncodings)
+            start_time = time.time()  # Reset the start time
+        
+    except:
+        pass
 
 def get_frame():
     global signal_takeoff
@@ -213,6 +244,7 @@ def get_frame():
     global cmd
     global is_rotating_clockwise
     global is_rotating_counter_clockwise
+    global original_frame
     #cap =  cv2.VideoCapture('udp://' + te_ip + ':11111'+'?overrun_nonfatal=1&fifo_size=50000000')
     
     flag = True
@@ -233,6 +265,7 @@ def get_frame():
             
             current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             frame=my_drone.get_frame_read().frame
+            original_frame = frame.copy() 
             if frame.shape==(720, 960, 3):  
                 
                 frame = cv2.resize(frame, imgsz)    
@@ -245,7 +278,9 @@ def get_frame():
                 hand_results = hands.process(image)
                 # image = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 
-                frame, face_center_x, face_center_y = draw_face_and_hands(image, face_results.multi_face_landmarks, hand_results.multi_hand_landmarks)
+                frame, face_center_x, face_center_y = draw_face_and_hands(image, 
+                                                                          face_results.multi_face_landmarks,
+                                                                          hand_results.multi_hand_landmarks)
                 # cv2.imshow('Face and Hands Detection', image)
                 
                 
@@ -413,8 +448,14 @@ def control_drone():
     global flying
     global is_rotating_clockwise
     global is_rotating_counter_clockwise
+    global original_frame
+    global start_time
+    
+    
+    
     
     while True:
+        perform_face_recognition(original_frame)
         if signal_takeoff:
             print('Drone take off')
             my_drone.takeoff()
@@ -489,3 +530,13 @@ get_frame_thread.start()
 control_drone_thread = threading.Thread(target=control_drone)
 control_drone_thread.daemon = True
 control_drone_thread.start()
+
+#Start the authentication thread
+# authentication_thread = threading.Thread(target=perform_face_recognition)
+# authentication_thread.daemon = True
+# authentication_thread.start()
+
+#Start the counter thread
+# counter_thread = threading.Thread(target=add_counter)
+# counter_thread.daemon = True
+# counter_thread.start()

@@ -144,7 +144,7 @@ def run(
     window = pygame.display.set_mode((960,720))
     threshold = 10
     previous_predicted_class = []
-    classes_counter = {'left':0,'right':0,'up':0,'down':0,'back':0,'forward':0,'land':0,'picture':0}
+    classes_counter = {'left':0,'right':0,'up':0,'down':0,'v9_c_best.pt':0,'forward':0,'land':0,'picture':0}
     with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence=0.5) as face_mesh, \
      mp_hands.Hands(min_detection_confidence=0.3, min_tracking_confidence=0.3) as hands:
         while True:
@@ -174,7 +174,7 @@ def run(
                     is_empthy=not exceeding_threshold
                     if not is_empthy:
                         print(f'predicted class is: {exceeding_threshold}')
-                        classes_counter = {'left':0,'right':0,'up':0,'down':0,'back':0,'forward':0,'land':0,'picture':0}
+                        classes_counter = {'left':0,'right':0,'up':0,'down':0,'backward':0,'forward':0,'land':0,'picture':0}
 
                     previous_predicted_class=highest_prob_class[0] 
 
@@ -186,7 +186,7 @@ def run(
 
 
 if __name__ == "__main__":
-    weights = './runs/train/gesture-fly-v3/weights/best.pt'
+    weights = 'v9_c_best.pt'
     device = 0 # cuda device, i.e. 0 or 0,1,2,3 or cpu
     imgsz=(640, 640)
     run(weights,device,imgsz)
