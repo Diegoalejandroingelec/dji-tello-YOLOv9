@@ -2,6 +2,6 @@
 /weights
 /runs
 /pictures
-/__pycache__/
+/__pycache__
 *.pt
 

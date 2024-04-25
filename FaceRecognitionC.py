@@ -57,10 +57,10 @@ def identify_user(frame,FaceNames,FaceEncodings):
 
        if index == -1:
            print('not identified!')
-           return False
+           return False , '-'
        else:
            print(index)
-           return True
+           return True, index
     except:
         pass
 
