@@ -52,7 +52,7 @@ def identify_user(frame,FaceNames,FaceEncodings):
        cropped_face = detect_faces(frame.copy())
        unknown_face_encoding = face_recognition.face_encodings(cropped_face)[0]
         # Compare the faces with the encodings
-       results = face_recognition.compare_faces(FaceEncodings, unknown_face_encoding, 0.45)
+       results = face_recognition.compare_faces(FaceEncodings, unknown_face_encoding, 0.55)
        index = get_true_index(results,FaceNames)
 
        if index == -1:

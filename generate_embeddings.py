@@ -95,3 +95,4 @@ def generate_embeddings_pkl():
     with open('embeddings.pkl', 'wb') as f:
         pickle.dump(embeddings_dict, f)
 
+generate_embeddings_pkl()
