@@ -1,8 +1,8 @@
 import face_recognition
 import mediapipe as mp
 import numpy as np
-
-
+# import cv2
+# import pickle
 
 def get_true_index(bool_list,FaceNames):
     for idx, value in enumerate(bool_list):
@@ -52,7 +52,7 @@ def identify_user(frame,FaceNames,FaceEncodings):
        cropped_face = detect_faces(frame.copy())
        unknown_face_encoding = face_recognition.face_encodings(cropped_face)[0]
         # Compare the faces with the encodings
-       results = face_recognition.compare_faces(FaceEncodings, unknown_face_encoding, 0.55)
+       results = face_recognition.compare_faces(FaceEncodings, unknown_face_encoding, 0.5)
        index = get_true_index(results,FaceNames)
 
        if index == -1:
@@ -66,11 +66,11 @@ def identify_user(frame,FaceNames,FaceEncodings):
 
 
 # cap = cv2.VideoCapture(0)
-# # te_ip= '192.168.10.1'
-# # cap =  cv2.VideoCapture('udp://' + te_ip + ':11111')
+# # # te_ip= '192.168.10.1'
+# # # cap =  cv2.VideoCapture('udp://' + te_ip + ':11111')
 
-# # Load the face encodings from the pickle file
-# with open('embeddings.pkl', 'rb') as f:
+# # # Load the face encodings from the pickle file
+# with open('core_embeddings.pkl', 'rb') as f:
 #     FaceEmbeddings = loaded_embeddings_dict = pickle.load(f)
 
 # FaceEncodings= FaceEmbeddings["FaceEmbeddings_new"]
@@ -91,5 +91,5 @@ def identify_user(frame,FaceNames,FaceEncodings):
 #     cv2.imshow("Image with Detected Faces", original_img)
     
 
-# cap.release() 
-# cv2.destroyAllWindows()    
+cap.release() 
+cv2.destroyAllWindows()    
