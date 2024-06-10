@@ -202,7 +202,7 @@ def perform_face_recognition(original_frame):
         current_time = time.time()  # Get the current time
         elapsed_time = current_time - start_time  # Calculate elapsed time
         
-        if elapsed_time >= 30:  # Check if 10 seconds have passed
+        if elapsed_time >= 10:  # Check if 10 seconds have passed
             print('AUTHENTICATION IN PROGRESS--------------------------------------------------------')
             is_authenticated, person = identify_user(original_frame,FaceNames,FaceEncodings)
             start_time = time.time()  # Reset the start time
@@ -386,7 +386,7 @@ def get_frame():
                             signal_left = True
                             cmd = "Move RIGHT"
                         elif class_action == 'picture':
-                            frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                            frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
                             cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                             i += 1
                             signal_picture = True
@@ -394,7 +394,7 @@ def get_frame():
                         elif class_action == 'land':
                             signal_land = True
                             cmd = "LAND"
-                        elif class_action == 'back':
+                        elif class_action == 'backward':
                             signal_backward=True
                             cmd = "BACK"
                         elif class_action == 'forward':
