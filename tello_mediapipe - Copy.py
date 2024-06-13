@@ -9,9 +9,32 @@ from utils.plots import Annotator, colors
 from utils.torch_utils import select_device
 import pygame
 import operator 
+import time
+from datetime import datetime
 import mediapipe as mp
-pygame.init()
 
+"""Global variables"""
+# Global variable to signal upward movement
+signal_takeoff=False
+signal_up = False
+signal_down=False
+signal_left=False
+signal_right=False
+signal_land=False
+signal_picture=False
+signal_backward=False
+signal_forward=False
+is_rotating_clockwise = False
+is_rotating_counter_clockwise = False
+cmd = "_"
+IMAGE_DIR = './assets/'
+original_frame = None
+start_time = time.time()
+person = '-'
+is_authenticated = True
+pygame.init()
+window = pygame.display.set_mode((960,720))
+    
 
 def load_model(weights,device,imgsz):
     # Load model
@@ -138,6 +161,37 @@ def run(
 
     model,names,_=load_model(weights,device,imgsz)
     cap = cv2.VideoCapture(0)
+    
+    """PyGAME initialization/configuraiton"""
+    # Text attributes for buttons
+    button_images = [pygame.image.load(f'{IMAGE_DIR}up.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}right.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}down.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}left.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}picture.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}backward.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}take-off.png').convert_alpha(),
+                     pygame.image.load(f'{IMAGE_DIR}land.png').convert_alpha(), 
+                     pygame.image.load(f'{IMAGE_DIR}forward.png').convert_alpha(),
+                     ]
+    button_rects = []
+    original_buttons = []
+    button_positions = [(820,510), (885, 575), (820, 640), (755, 575), (820, 575), (350,640), (415,640), (480, 640), (545, 640)]
+
+    for i in range(len(button_images)):
+        button_images[i] = pygame.transform.scale(button_images[i], (65, 65))
+        button_rects.append(button_images[i].get_rect(topleft=(button_positions[i])))
+        original_buttons.append(button_images[i].copy())
+
+    # Alpha values for button transparency
+    default_alpha = 255  # Fully opaque
+    hover_alpha = 100  # Semi-transparent
+    click_alpha = 50   # More transparent on click
+
+    click_effect_duration = 200  # Duration of the click effect in milliseconds
+    last_click_time = 0  # Timestamp of the last click
+
+    
 
     window = pygame.display.set_mode((960,720))
     threshold = 10
@@ -149,17 +203,41 @@ def run(
             ret, frame = cap.read()
             if ret:
                 frame = cv2.resize(frame, imgsz) 
+                # cv2.imshow(" frame", frame)
                 aux_image = frame.copy()
                 face_results = face_mesh.process(aux_image)
                 hand_results = hands.process(aux_image)
                 _ , regions = draw_face_and_hands(aux_image, face_results.multi_face_landmarks, hand_results.multi_hand_landmarks)
                 # frame = apply_blur_except_regions(frame, regions)
-
                 predicted_classes,im0=inference(frame,model,names,line_thickness)
+                # cv2.imshow("Detection frame", im0)
                 frame_surface = pygame.surfarray.make_surface(im0.swapaxes(0, 1))
+                
+                """PyGame window surface overlay"""
+                # Blit and display
                 window.blit(frame_surface, (0, 0))
+                                
+                current_time_pygame = pygame.time.get_ticks()
+                
+                # Check for mouse hover
+                mouse_pos = pygame.mouse.get_pos()
+                
+                for i in range(len(button_rects)):
+                    if button_rects[i].collidepoint(mouse_pos):
+                        if current_time_pygame - last_click_time > click_effect_duration:
+                            # Change the alpha value when hovering
+                            button_images[i].set_alpha(hover_alpha)
+                    else:
+                        # Reset the alpha value when not hovering or clicking
+                        if current_time_pygame - last_click_time > click_effect_duration:
+                            button_images[i] = original_buttons[i].copy()
+                            button_images[i].set_alpha(default_alpha)
+                            
+                    window.blit(button_images[i], button_rects[i])
                 pygame.display.update()
-
+                """"""
+                
+                
                 if(predicted_classes):
                     
                     highest_prob_class = max(predicted_classes, key=operator.itemgetter(1))
@@ -175,11 +253,9 @@ def run(
                         classes_counter = {'left':0,'right':0,'up':0,'down':0,'backward':0,'forward':0,'land':0,'picture':0}
 
                     previous_predicted_class=highest_prob_class[0] 
-                # This additional sleep call ensures the loop is not running too fast
-                # pygame.time.wait(10)
-                cv2.waitKey(10)
-       
 
+                cv2.waitKey(10)
+        
 
 if __name__ == "__main__":
     weights = 'v9_c_best.pt'

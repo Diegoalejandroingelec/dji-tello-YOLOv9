@@ -91,5 +91,5 @@ def identify_user(frame,FaceNames,FaceEncodings):
 #     cv2.imshow("Image with Detected Faces", original_img)
     
 
-cap.release() 
-cv2.destroyAllWindows()    
+# cap.release() 
+# cv2.destroyAllWindows()    
