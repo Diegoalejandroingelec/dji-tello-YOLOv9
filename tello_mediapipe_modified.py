@@ -41,7 +41,9 @@ start_time = time.time()
 
 """Pygame"""
 pygame.init()
-window = pygame.display.set_mode((960,720))
+screen_width = 960
+screen_height = 720
+window = pygame.display.set_mode((screen_width,screen_height))
 IMAGE_DIR = './assets/'
 person = '-'
 is_authenticated = True
@@ -62,6 +64,28 @@ FaceEncodings= FaceEmbeddings["FaceEmbeddings_new"]
 FaceNames = FaceEmbeddings["FaceNames"]
 print("Face Embedding loaded.")
 
+def draw_outlined_text(image, text, position, font, font_scale, color, thickness, outline_color, outline_thickness):
+    image = cv2.putText(image, text, position, font, font_scale, outline_color, outline_thickness, lineType=cv2.LINE_AA)
+    image = cv2.putText(image, text, position, font, font_scale, color, thickness, lineType=cv2.LINE_AA)
+    return image
+
+
+def picture_countdown_completed():
+    global picture_counter
+    global countdown_started_time
+    if picture_counter == -1 or countdown_started_time is None:
+        return False, False # Not finished, there is no countdown
+    current_time = time.time()
+    if current_time - countdown_started_time >= 1:
+        countdown_started_time = time.time()
+        picture_counter -= 1
+        if picture_counter <= 0:
+            picture_counter = -1
+            countdown_started_time = None
+            return True, True # Finished, there is a countdown
+        return False, True # Not finished, there is a countdown
+    
+    return False, False # Not planned condition
 
 def load_model(weights,device,imgsz):
     # Load model
@@ -345,6 +369,9 @@ button_images = [pygame.image.load(f'{IMAGE_DIR}up.png').convert_alpha(),
                  pygame.image.load(f'{IMAGE_DIR}land.png').convert_alpha(), 
                  pygame.image.load(f'{IMAGE_DIR}forward.png').convert_alpha(),
                  ]
+frame_image = pygame.image.load(f'{IMAGE_DIR}frame.png')
+frame_image = pygame.transform.scale(frame_image, (screen_width, screen_height))
+    
 button_rects = []
 original_buttons = []
 button_positions = [(820,510), (885, 575), (820, 640), (755, 575), (820, 575), (350,640), (415,640), (480, 640), (545, 640)]
@@ -443,6 +470,7 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
             
             # Blit and display
             window.blit(frame_surface, (0, 0))
+            window.blit(frame_image, (0, 0))
                             
             current_time_pygame = pygame.time.get_ticks()
             
@@ -494,7 +522,10 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                         cmd = "Move RIGHT"
                     elif class_action == 'picture':
                         frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-                        cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                        # cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                        picture_counter = 4
+                        countdown_started_time = time.time()
+                        print("TAKING PICTURE")
                         i += 1
                         signal_picture = True
                         cmd = "Take PICTURE"
@@ -572,7 +603,11 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                                  frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                                  cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                                  i += 1
-                                 # signal_picture = True
+                                 picture_counter = 4
+                                 countdown_started_time = time.time()
+                                 print("TAKING PICTURE")
+                                 i += 1
+                                 signal_picture = True
                                  cmd = "Take PICTURE"
                              elif i == 6:
                                  signal_takeoff = True
