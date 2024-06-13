@@ -41,7 +41,7 @@ face_mesh = mp_face_mesh.FaceMesh()
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
-with open('core_embeddings.pkl', 'rb') as f:
+with open('embeddings.pkl', 'rb') as f:
     FaceEmbeddings = loaded_embeddings_dict = pickle.load(f)
 
 FaceEncodings= FaceEmbeddings["FaceEmbeddings_new"]
@@ -334,10 +334,6 @@ def get_frame():
                 image = cv2.putText(image, f'Battery: {str(battery)} %', (760, 50), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
                 image = cv2.putText(image, f'Command: {cmd}', (15, 650), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
                 image = cv2.putText(image, f'Person: {person}', (15, 680), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
-                # cv2.imshow('Face and Hands Detection', image)
-                # cv2.waitKey(10)
-                
-                
                 frame_surface = pygame.surfarray.make_surface(image.swapaxes(0, 1))
                 
                 # Blit and display
@@ -360,7 +356,6 @@ def get_frame():
                             button_images[i].set_alpha(default_alpha)
                             
                     window.blit(button_images[i], button_rects[i])
-                    
     
                 pygame.display.update()
 
@@ -371,7 +366,6 @@ def get_frame():
     
                     if(previous_predicted_class and  highest_prob_class[0]!=previous_predicted_class):
                         classes_counter[previous_predicted_class]=0
-                    cv2.waitKey(10)
     
                     exceeding_threshold = {key: value for key, value in classes_counter.items() if value >= threshold}
                     is_empthy=not exceeding_threshold
@@ -379,7 +373,6 @@ def get_frame():
                         print(f'predicted class is: {exceeding_threshold}')
                         classes_counter = {'left':0,'right':0,'up':0,'down':0,'backward':0,'forward':0,'land':0,'picture':0}
                         class_action=list(exceeding_threshold.keys())[0]
-                        
                         if class_action == 'up':
                             signal_up = True
                             cmd = "Move UP"
@@ -412,7 +405,6 @@ def get_frame():
                             
                     previous_predicted_class=highest_prob_class[0] 
                 
-                # cv2.waitKey(10)
                 
                 # Handle Pygame events
                 for event in pygame.event.get():
@@ -455,45 +447,45 @@ def get_frame():
                      elif event.type == pygame.QUIT:
                          flag = False
                          
-                # cv2.waitKey(10)
-                      # Mouse button down event
+                     # Mouse button down event
                      elif event.type == pygame.MOUSEBUTTONDOWN:
-                          for i in range(len(button_rects)):
-                              if button_rects[i].collidepoint(event.pos):
-                                  button_images[i].set_alpha(click_alpha)
-                                  last_click_time = current_time_pygame
-                                  if i == 0:
-                                      signal_up = True
-                                      cmd = "Move UP"
-                                  elif i == 3:
-                                      signal_left = True
-                                      cmd = "Move LEFT"
-                                  elif i == 2:
-                                      signal_down = True
-                                      cmd = "Move DOWN"
-                                  elif i == 1:
-                                      signal_right = True
-                                      cmd = "Move RIGHT"
-                                  elif i == 4:
-                                      frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                                      cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
-                                      i += 1
-                                      signal_picture = True
-                                      cmd = "Take PICTURE"
-                                  elif i == 6:
-                                      signal_takeoff = True
-                                      cmd = "TAKE-OFF"
-                                      flying = True
-                                  elif i == 7:
-                                      signal_land = True
-                                      cmd = "LAND"
-                                  elif i == 5:
-                                      signal_backward=True
-                                      cmd = "BACK"
-                                  elif i == 8:
-                                      signal_forward=True
-                                      cmd = "FORWARD"
-                                     
+                         for i in range(len(button_rects)):
+                             if button_rects[i].collidepoint(event.pos):
+                                 button_images[i].set_alpha(click_alpha)
+                                 last_click_time = current_time_pygame
+                                 if i == 0:
+                                     signal_up = True
+                                     cmd = "Move UP"
+                                 elif i == 3:
+                                     signal_left = True
+                                     cmd = "Move LEFT"
+                                 elif i == 2:
+                                     signal_down = True
+                                     cmd = "Move DOWN"
+                                 elif i == 1:
+                                     signal_right = True
+                                     cmd = "Move RIGHT"
+                                 elif i == 4:
+                                     frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                                     cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                                     i += 1
+                                     signal_picture = True
+                                     cmd = "Take PICTURE"
+                                 elif i == 6:
+                                     signal_takeoff = True
+                                     cmd = "TAKE-OFF"
+                                     flying = True
+                                 elif i == 7:
+                                     signal_land = True
+                                     cmd = "LAND"
+                                 elif i == 5:
+                                     signal_backward=True
+                                     cmd = "BACK"
+                                 elif i == 8:
+                                     signal_forward=True
+                                     cmd = "FORWARD"
+
+    
     pygame.quit()
 
 def control_drone():
@@ -575,15 +567,16 @@ def control_drone():
 
 my_drone = Tello()
 my_drone.connect()
+ 
 my_drone.streamon()
 
-# get_frame()
+
 # Start the get_frame thread
 get_frame_thread = threading.Thread(target=get_frame)
 get_frame_thread.daemon = True
 get_frame_thread.start()
 
-# # Start the control_drone thread
-# control_drone_thread = threading.Thread(target=control_drone)
-# control_drone_thread.daemon = True
-# control_drone_thread.start()
+# Start the control_drone thread
+control_drone_thread = threading.Thread(target=control_drone)
+control_drone_thread.daemon = True
+control_drone_thread.start()
