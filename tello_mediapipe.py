@@ -139,7 +139,7 @@ IMAGE_DIR = './assets/'
 original_frame = None
 start_time = time.time()
 person = '-'
-is_authenticated = True
+is_authenticated = False
 
 
 def inference(im,model,names,line_thickness):
@@ -505,47 +505,79 @@ def control_drone():
     global start_time
     global is_authenticated
     global person
+    global signal_picture
+    #my_drone.send_expansion_command("mled sc")
     
+    command_1_sent=False
+    command_2_sent=False
     while True:
         perform_face_recognition(original_frame)
         if(is_authenticated):
+            
+            if(not command_1_sent):
+                my_drone.send_expansion_command("led bl 0.5 0 255 0 0 255 0")
+                my_drone.send_expansion_command("mled sg 00rrrr000r0000r0r0r00r0rr000000rr0r00r0rr00rr00r0r0000r000rrrr00")
+                command_2_sent = False
+                command_1_sent = True
+                
+            if signal_picture:
+                print('Drone led')
+                my_drone.send_expansion_command("mled l r 1.5 PICTURE")
+                
+            
+                #my_drone.send_expansion_command("mled sg 00rrrr000r0000r0r0r00r0rr000000rr0r00r0rr00rr00r0r0000r000rrrr00")
+               
+                
+                my_drone.send_expansion_command("led bl 0.5 255 0 255 0 0 255")
+                
+                #my_drone.send_expansion_command("mled sc") 
+                signal_picture = False
+                cmd = "_"
             if signal_takeoff:
                 print('Drone take off')
+                my_drone.send_expansion_command("mled l g 1.5 GESTURE FLY")
                 my_drone.takeoff()
                 signal_takeoff = False
                 cmd = "_"
             if signal_up:
                 print('Drone up')
+                my_drone.send_expansion_command("mled u r 1.5 UP")
                 my_drone.move_up(20)
                 signal_up = False
                 cmd = "_"
             if signal_down:
                 print('Drone down')
+                my_drone.send_expansion_command("mled d r 1.5 DOWN")
                 my_drone.move_down(20)
                 signal_down = False
                 cmd = "_"
             if signal_left:
                 print('Drone left')
+                my_drone.send_expansion_command("mled r r 1.5 RIGHT")
                 my_drone.move_left(20)
                 signal_left = False
                 cmd = "_"
             if signal_right:
                 print('Drone right')
+                my_drone.send_expansion_command("mled l r 1.5 LEFT")
                 my_drone.move_right(20)
                 signal_right = False
                 cmd = "_"
             if signal_backward:
                 print('Drone back')
+                my_drone.send_expansion_command("mled l r 1.5 BACK")
                 my_drone.move_back(20)
                 signal_backward = False
                 cmd = "_"
             if signal_forward:
                 print('Drone forward')
+                my_drone.send_expansion_command("mled l r 1.5 FORWARD")
                 my_drone.move_forward(20)
                 signal_forward = False
                 cmd = "_"
             if signal_land:
                 print('Drone land')
+                my_drone.send_expansion_command("mled l r 1.5 LANDING")
                 my_drone.land()
                 signal_land = False
                 cmd = "_"
@@ -560,6 +592,12 @@ def control_drone():
                 is_rotating_counter_clockwise= False
                 cmd = "_" 
         else:
+            if(not command_2_sent):
+                my_drone.send_expansion_command("led bl 0.5 255 0 0 254 0 0")
+                my_drone.send_expansion_command("mled sg 00rrrr000r0000r0r0r00r0rr000000rr00rr00rr0r00r0r0r0000r000rrrr00")
+                command_2_sent = True
+                command_1_sent = False
+                
             person = 'NOT AUTHENTICATED'
             cmd = "_" 
             
