@@ -32,7 +32,10 @@ weights = 'v9_c_best.pt'
 device = 0 # cuda device, i.e. 0 or 0,1,2,3 or cpu
 imgsz=(640, 640)
 model,names,_=load_model(weights,device,imgsz)
-window = pygame.display.set_mode((960,720))
+
+screen_width = 960
+screen_height = 720
+window = pygame.display.set_mode((screen_width, screen_height))
 
 
 mp_drawing = mp.solutions.drawing_utils
@@ -41,7 +44,8 @@ face_mesh = mp_face_mesh.FaceMesh()
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
-with open('embeddings.pkl', 'rb') as f:
+# with open('embeddings.pkl', 'rb') as f:
+with open('core_embeddings.pkl', 'rb') as f:
     FaceEmbeddings = loaded_embeddings_dict = pickle.load(f)
 
 FaceEncodings= FaceEmbeddings["FaceEmbeddings_new"]
@@ -140,6 +144,24 @@ original_frame = None
 start_time = time.time()
 person = '-'
 is_authenticated = True
+picture_counter = -1
+countdown_started_time = None
+
+flashing = False
+# Create a surface for the flashing effect
+flash_surface = pygame.Surface((screen_width, screen_height))
+flash_surface.fill((255, 255, 255))  # White flash
+flash_surface.set_alpha(0)  # Start with fully transparent
+
+# Set up flashing parameters
+flash_duration = 2.0  # Total duration of the flash effect in seconds
+half_flash_duration = flash_duration / 2
+time_elapsed = 0
+
+def draw_outlined_text(image, text, position, font, font_scale, color, thickness, outline_color, outline_thickness):
+    image = cv2.putText(image, text, position, font, font_scale, outline_color, outline_thickness, lineType=cv2.LINE_AA)
+    image = cv2.putText(image, text, position, font, font_scale, color, thickness, lineType=cv2.LINE_AA)
+    return image
 
 
 def inference(im,model,names,line_thickness):
@@ -172,8 +194,6 @@ def inference(im,model,names,line_thickness):
                                     agnostic=False,
                                     max_det=1000)
 
-
-
     # Process predictions 
     det = pred[0]
     annotator = Annotator(np.ascontiguousarray(im0s), line_width=line_thickness, example=str(names))
@@ -200,16 +220,33 @@ def perform_face_recognition(original_frame):
     global is_authenticated
     try:
         current_time = time.time()  # Get the current time
-        elapsed_time = current_time - start_time  # Calculate elapsed time
         
+        elapsed_time = current_time - start_time  # Calculate elapsed time
+        # print(elapsed_time)
         if elapsed_time >= 10:  # Check if 10 seconds have passed
-            print('AUTHENTICATION IN PROGRESS--------------------------------------------------------')
+            # print('AUTHENTICATION IN PROGRESS--------------------------------------------------------')
             is_authenticated, person = identify_user(original_frame,FaceNames,FaceEncodings)
             start_time = time.time()  # Reset the start time
-        
     except:
         pass
-
+    
+def picture_countdown_completed():
+    global picture_counter
+    global countdown_started_time
+    if picture_counter == -1 or countdown_started_time is None:
+        return False, False # Not finished, there is no countdown
+    current_time = time.time()
+    if current_time - countdown_started_time >= 1:
+        countdown_started_time = time.time()
+        picture_counter -= 1
+        if picture_counter <= 0:
+            picture_counter = -1
+            countdown_started_time = None
+            return True, True # Finished, there is a countdown
+        return False, True # Not finished, there is a countdown
+    
+    return False, False # Not planned condition
+    
 def get_frame():
     global signal_takeoff
     global signal_up 
@@ -226,6 +263,16 @@ def get_frame():
     global original_frame
     global person
     global is_authenticated
+    global picture_counter
+    global countdown_started_time
+    global flashing
+    # Create a surface for the flashing effect
+    global flash_surface
+    # Set up flashing parameters
+    global flash_duration 
+    global half_flash_duration
+    global time_elapsed
+    
     
     flying = False
     # cap =  cv2.VideoCapture(0)
@@ -250,9 +297,12 @@ def get_frame():
                      pygame.image.load(f'{IMAGE_DIR}land.png').convert_alpha(), 
                      pygame.image.load(f'{IMAGE_DIR}forward.png').convert_alpha(),
                      ]
+    frame_image = pygame.image.load(f'{IMAGE_DIR}frame.png')
+    frame_image = pygame.transform.scale(frame_image, (screen_width, screen_height))
     button_rects = []
     original_buttons = []
-    button_positions = [(820,510), (885, 575), (820, 640), (755, 575), (820, 575), (350,640), (415,640), (480, 640), (545, 640)]
+    button_positions = [(800,500), (865, 565), (800, 630), (735, 565), (800, 565), (350,640), (415,640), (480, 640), (545, 640)]
+    frame_position = (0,0)
     
     for i in range(len(button_images)):
         button_images[i] = pygame.transform.scale(button_images[i], (65, 65))
@@ -296,12 +346,12 @@ def get_frame():
                 frame_center_x = frame_w // 2
             
                 # Draw the center line of the frame
-                cv2.line(image, (frame_center_x, 0), (frame_center_x, frame_h), (255, 0, 0), 2)
-                cv2.line(image, (frame_center_x + 120, 0), (frame_center_x + 120, frame_h), (0, 0, 255), 2)
-                cv2.line(image, (frame_center_x - 120, 0), (frame_center_x - 120, frame_h), (0, 0, 255), 2)
+                # cv2.line(image, (frame_center_x, 0), (frame_center_x, frame_h), (255, 0, 0), 2)
+                # cv2.line(image, (frame_center_x + 120, 0), (frame_center_x + 120, frame_h), (0, 0, 255), 2)
+                # cv2.line(image, (frame_center_x - 120, 0), (frame_center_x - 120, frame_h), (0, 0, 255), 2)
     
                 # Draw the center point of the face
-                cv2.circle(image, (face_center_x, face_center_y), 5, (0, 0, 255), -1)
+                # cv2.circle(image, (face_center_x, face_center_y), 5, (0, 0, 255), -1)
     
                 # Calculate the x distance from the face center to the frame's center line
                 x_distance = face_center_x - frame_center_x
@@ -324,20 +374,48 @@ def get_frame():
                     # cv2.putText(frame, distance2move, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
     
                 # Visualize the x distance
-                cv2.line(image, (face_center_x, face_center_y), (frame_center_x, face_center_y), (250, 255, 0), 2)
+                # cv2.line(image, (face_center_x, face_center_y), (frame_center_x, face_center_y), (250, 255, 0), 2)
                 
                 
                 battery = my_drone.get_battery()
                 # battery = 100
                 
                 image=cv2.resize(image,(960,720))
-                image = cv2.putText(image, f'Battery: {str(battery)} %', (760, 50), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
-                image = cv2.putText(image, f'Command: {cmd}', (15, 650), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
-                image = cv2.putText(image, f'Person: {person}', (15, 680), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
+                image = draw_outlined_text(image, f'Battery: {str(battery)} %', (760, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, (255, 255, 255), 5)
+                image = draw_outlined_text(image, f'Command: {cmd}', (30, 650), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, (255, 255, 255), 5)
+                image = draw_outlined_text(image, f'Person: {person}', (30, 680), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, (255, 255, 255), 5)
+                
+                countdown_finished, countdown = picture_countdown_completed()
+                if countdown and picture_counter >= 0:
+                    image = draw_outlined_text(image, f'{int(picture_counter)}', (int(screen_width/2)-50, int(screen_height/2)-50), cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 0), 2, (255, 255, 255), 8)
+                    if countdown_finished:
+                        flashing = countdown_finished
+                
+                if flashing:
+                    last_flash_time = time.time()
+                    # Calculate time elapsed since start of flash
+                    dt = clock.tick(60) / 1000.0
+                    time_elapsed += dt
+            
+                    if time_elapsed <= half_flash_duration:
+                        # Increase opacity
+                        alpha = int((time_elapsed / half_flash_duration) * 255)
+                    elif time_elapsed <= flash_duration:
+                        # Decrease opacity
+                        alpha = int(((flash_duration - time_elapsed) / half_flash_duration) * 255)
+                    else:
+                        flash_completed = True
+                        alpha = 0
+            
+                    flash_surface.set_alpha(alpha)
+                    window.blit(flash_surface, (0, 0))
+                        
                 frame_surface = pygame.surfarray.make_surface(image.swapaxes(0, 1))
+                
                 
                 # Blit and display
                 window.blit(frame_surface, (0, 0))
+                window.blit(frame_image, (0, 0))
                 
                 current_time_pygame = pygame.time.get_ticks()
                 
@@ -387,7 +465,10 @@ def get_frame():
                             cmd = "Move RIGHT"
                         elif class_action == 'picture':
                             frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-                            cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                            # cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                            picture_counter = 4
+                            countdown_started_time = time.time()
+                            print("TAKING PICTURE")
                             i += 1
                             signal_picture = True
                             cmd = "Take PICTURE"
@@ -425,7 +506,10 @@ def get_frame():
                              cmd = "Move RIGHT"
                          elif event.key == pygame.K_p:
                              frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                             cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                             picture_counter = 4
+                             countdown_started_time = time.time()
+                             print("TAKING PICTURE")
+                             # cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                              i += 1
                              signal_picture = True
                              cmd = "Take PICTURE"
@@ -467,10 +551,13 @@ def get_frame():
                                      cmd = "Move RIGHT"
                                  elif i == 4:
                                      frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                                     cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                                     picture_counter = 4
+                                     countdown_started_time = time.time()
+                                     # cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                                      i += 1
                                      signal_picture = True
                                      cmd = "Take PICTURE"
+                                     print("TAKING PICTURE")
                                  elif i == 6:
                                      signal_takeoff = True
                                      cmd = "TAKE-OFF"
@@ -484,8 +571,8 @@ def get_frame():
                                  elif i == 8:
                                      signal_forward=True
                                      cmd = "FORWARD"
-
-    
+                    
+                    
     pygame.quit()
 
 def control_drone():
@@ -549,6 +636,7 @@ def control_drone():
                 my_drone.land()
                 signal_land = False
                 cmd = "_"
+
             if is_rotating_clockwise:
                 print('Drone is rotating clock-wise')
                 my_drone.rotate_clockwise(20)
