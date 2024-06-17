@@ -48,6 +48,20 @@ IMAGE_DIR = './assets/'
 person = '-'
 is_authenticated = True
 
+"""Countdown"""
+picture_counter = -1
+countdown_started_time = None
+
+"""Flashing"""
+flashing = False
+# Create a surface for the flashing effect
+flash_surface = pygame.Surface((screen_width, screen_height))
+flash_surface.fill((255, 255, 255))  # White flash
+
+# Set up flashing parameters
+flash_duration = 1.0  # Total duration of the flash effect in seconds
+flash_time= 0
+
 
 """mediapipe"""
 mp_drawing = mp.solutions.drawing_utils
@@ -79,9 +93,10 @@ def picture_countdown_completed():
     if current_time - countdown_started_time >= 1:
         countdown_started_time = time.time()
         picture_counter -= 1
+        number_to_show=NUMBERS[str(picture_counter)]
+        
+        my_drone.send_expansion_command(f"mled sg {number_to_show}")
         if picture_counter <= 0:
-            picture_counter = -1
-            countdown_started_time = None
             return True, True # Finished, there is a countdown
         return False, True # Not finished, there is a countdown
     
