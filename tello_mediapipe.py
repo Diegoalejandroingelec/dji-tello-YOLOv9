@@ -617,51 +617,65 @@ def control_drone():
                 cmd = "_"
             if signal_takeoff:
                 print('Drone take off')
-                my_drone.send_expansion_command("mled l g 1.5 GESTURE FLY")
+                led_take_off = "00000000000rr00000r00r000r0000r0r00rr00r00r00r000r0000r0r000000r"
+                # my_drone.send_expansion_command("mled l g 1.5 GESTURE FLY")
+                my_drone.send_expansion_command(f"mled d g 1.5 {led_take_off}")
                 my_drone.takeoff()
                 signal_takeoff = False
                 cmd = "_"
             if signal_up:
                 print('Drone up')
-                my_drone.send_expansion_command("mled u r 1.5 UP")
+                led_up = "000r000000rrr0000r0r0r00r00r00r0000r0000000r0000000r000000000000"
+                # my_drone.send_expansion_command("mled u r 1.5 UP")
+                my_drone.send_expansion_command(f"mled u g 1.5 {led_up}")
                 my_drone.move_up(20)
                 signal_up = False
                 cmd = "_"
             if signal_down:
                 print('Drone down')
-                my_drone.send_expansion_command("mled d r 1.5 DOWN")
+                led_down = "r0000000000r0000000r0000000r0000r00r00r00r0r0r0000rrr000000r0000"
+                # my_drone.send_expansion_command("mled d r 1.5 DOWN")
+                my_drone.send_expansion_command(f"mled d g 1.5 {led_down}")
                 my_drone.move_down(20)
                 signal_down = False
                 cmd = "_"
             if signal_left:
                 print('Drone left')
-                right = "000000000000r00000000r00000000r0rrrrrrrr000000r000000r000000r000"
+                led_right = "000000000000r00000000r00000000r00rrrrrrr000000r000000r000000r000"
                 # my_drone.send_expansion_command("mled r r 1.5 RIGHT")
-                my_drone.send_expansion_command(f"mled r g 1.5 {right}")
+                my_drone.send_expansion_command(f"mled r g 1.5 {led_right}")
                 my_drone.move_left(20)
                 signal_left = False
                 cmd = "_"
             if signal_right:
                 print('Drone right')
-                my_drone.send_expansion_command("mled l r 1.5 LEFT")
+                led_left = "00000000000r000000r000000r000000rrrrrrr00r00000000r00000000r0000"
+                # my_drone.send_expansion_command("mled l r 1.5 LEFT")
+                my_drone.send_expansion_command(f"mled l g 1.5 {led_left}")
                 my_drone.move_right(20)
                 signal_right = False
                 cmd = "_"
             if signal_backward:
                 print('Drone back')
-                my_drone.send_expansion_command("mled l r 1.5 BACK")
+                led_back = "rrr00000r0r00r000r0000r0rrr0000r0r0r00r00r000r00r0r00000r0rr0000"
+                # my_drone.send_expansion_command("mled l r 1.5 BACK")
+                my_drone.send_expansion_command(f"mled sg {led_back}")
                 my_drone.move_back(20)
                 signal_backward = False
                 cmd = "_"
             if signal_forward:
                 print('Drone forward')
-                my_drone.send_expansion_command("mled l r 1.5 FORWARD")
+                led_forward = "rrr00000r0r0000r0r0000r0rrr00r000r0r00r00r00000rr0r00000r0rr0000"
+                # my_drone.send_expansion_command("mled l r 1.5 FORWARD")
+                my_drone.send_expansion_command(f"mled sg {led_forward}")
                 my_drone.move_forward(20)
                 signal_forward = False
                 cmd = "_"
             if signal_land:
                 print('Drone land')
-                my_drone.send_expansion_command("mled l r 1.5 LANDING")
+                led_land = "r000000r0r0000r000r00r00000rr000r000000r0r0000r000r00r00000rr000"
+                # my_drone.send_expansion_command("mled l r 1.5 LANDING")
+                my_drone.send_expansion_command(f"mled sg {led_land}")
                 my_drone.land()
                 signal_land = False
                 cmd = "_"
