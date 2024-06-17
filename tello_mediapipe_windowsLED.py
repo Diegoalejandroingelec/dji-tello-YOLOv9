@@ -312,7 +312,7 @@ def control_drone():
                 print('Drone take off')
                 led_take_off = "00000000000rr00000r00r000r0000r0r00rr00r00r00r000r0000r0r000000r"
                 # my_drone.send_expansion_command("mled l g 1.5 GESTURE FLY")
-                my_drone.send_expansion_command(f"mled d g 1.5 {led_take_off}")
+                my_drone.send_expansion_command(f"mled u g 1.5 {led_take_off}")
                 my_drone.takeoff()
                 signal_takeoff = False
                 cmd = "_"
