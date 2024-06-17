@@ -401,6 +401,9 @@ def get_frame():
                         flashing = countdown_finished
                         flash_time = time.time()
                         
+                        frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
+                        cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                        
                 frame_surface = pygame.surfarray.make_surface(image.swapaxes(0, 1))
                 
                 
@@ -462,8 +465,6 @@ def get_frame():
                             signal_left = True
                             cmd = "Move RIGHT"
                         elif class_action == 'picture':
-                            frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-                            cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                             picture_counter = 4
                             countdown_started_time = time.time()
                             print("TAKING PICTURE")
@@ -503,11 +504,9 @@ def get_frame():
                              signal_right = True
                              cmd = "Move RIGHT"
                          elif event.key == pygame.K_p:
-                             frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                              picture_counter = 4
                              countdown_started_time = time.time()
                              print("TAKING PICTURE")
-                             cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                              i += 1
                              signal_picture = True
                              cmd = "Take PICTURE"
@@ -548,10 +547,8 @@ def get_frame():
                                      signal_right = True
                                      cmd = "Move RIGHT"
                                  elif i == 4:
-                                     frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                                      picture_counter = 4
                                      countdown_started_time = time.time()
-                                     cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                                      i += 1
                                      signal_picture = True
                                      cmd = "Take PICTURE"

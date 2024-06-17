@@ -492,6 +492,9 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                     countdown_started_time = None
                     flashing = countdown_finished
                     flash_time = time.time()
+                    
+                    frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
+                    cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
             
             """PyGame window surface overlay"""
             
@@ -557,8 +560,6 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                         signal_left = True
                         cmd = "Move RIGHT"
                     elif class_action == 'picture':
-                        frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-                        cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                         picture_counter = 4
                         countdown_started_time = time.time()
                         print("TAKING PICTURE")
@@ -599,8 +600,6 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                          signal_right = True
                          cmd = "Move RIGHT"
                      elif event.key == pygame.K_p:
-                         frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                         cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                          i += 1
                          signal_picture = True
                          picture_counter = 4
@@ -638,8 +637,6 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                                  signal_right = True
                                  cmd = "Move RIGHT"
                              elif i == 4:
-                                 frame_RGB=cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                                 cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                                  i += 1
                                  picture_counter = 4
                                  countdown_started_time = time.time()
