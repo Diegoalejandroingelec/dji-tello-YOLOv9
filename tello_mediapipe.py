@@ -394,7 +394,7 @@ def get_frame():
                 countdown_finished, countdown = picture_countdown_completed()
                 if countdown and picture_counter >= 0:
                     print(countdown, countdown_finished)
-                    image = draw_outlined_text(image, f'{int(picture_counter)}', (int(screen_width/2)-25, int(screen_height/2)-25), cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 0), 2, (255, 255, 255), 8)
+                    image = draw_outlined_text(image, f'{int(picture_counter)}', (int(screen_width/2)-45, int(screen_height/2)+35), cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 0), 6, (255, 255, 255), 10)
                     if countdown_finished:
                         picture_counter = -1
                         countdown_started_time = None

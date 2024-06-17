@@ -70,6 +70,12 @@ face_mesh = mp_face_mesh.FaceMesh()
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands()
 
+NUMBERS ={
+          '0':'rr0000rrr0rrrr0r0rrrrrr00r0rr0r0rrrrrrrrr0rrrr0rrr0000rr0rrrrrr0',
+          '1':"0000r00000rrr00000r0r0000000r0000000r0000000r0000000r0000rrrrrr0",
+          '2':'0rrrrr000r000r0000000r000000r000000r000000r000000r000r000rrrrr00',
+          '3':'0rrrrr000r000r0000000r000000r0000000r00000000r000r000r000rrrrr00'}
+
 """ Face Recognition Embeddings"""
 with open('core_embeddings.pkl', 'rb') as f:
     FaceEmbeddings = loaded_embeddings_dict = pickle.load(f)
@@ -471,14 +477,22 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
             # cv2.line(image, (face_center_x, face_center_y), (frame_center_x, face_center_y), (250, 255, 0), 2)              
             battery = my_drone.get_battery()
             # battery = 100
-
-            image=cv2.resize(image,(960,720))
-            image = cv2.putText(image, f'Battery: {str(battery)} %', (760, 50), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
-            image = cv2.putText(image, f'Command: {cmd}', (15, 650), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
-            image = cv2.putText(image, f'Person: {person}', (15, 680), cv2.FONT_HERSHEY_SIMPLEX,  0.8, (255, 255, 255), 1, cv2.LINE_AA)
-            
             
             image=cv2.resize(image,(960,720))
+            image = draw_outlined_text(image, f'Battery: {str(battery)} %', (760, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, (255, 255, 255), 5)
+            image = draw_outlined_text(image, f'Command: {cmd}', (30, 650), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, (255, 255, 255), 5)
+            image = draw_outlined_text(image, f'Person: {person}', (30, 680), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 2, (255, 255, 255), 5)
+            
+            countdown_finished, countdown = picture_countdown_completed()
+            if countdown and picture_counter >= 0:
+                print(countdown, countdown_finished)
+                image = draw_outlined_text(image, f'{int(picture_counter)}', (int(screen_width/2)-45, int(screen_height/2)+35), cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 0, 0), 6, (255, 255, 255), 10)
+                if countdown_finished:
+                    picture_counter = -1
+                    countdown_started_time = None
+                    flashing = countdown_finished
+                    flash_time = time.time()
+            
             """PyGame window surface overlay"""
             
             frame_surface = pygame.surfarray.make_surface(image.swapaxes(0, 1))
@@ -486,6 +500,13 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
             # Blit and display
             window.blit(frame_surface, (0, 0))
             window.blit(frame_image, (0, 0))
+            
+            if flashing:
+                current_time = time.time()
+                if current_time - flash_time <= flash_duration:  
+                    window.blit(flash_surface, (0, 0))
+                else:
+                    flashing = False
                             
             current_time_pygame = pygame.time.get_ticks()
             
@@ -537,7 +558,7 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                         cmd = "Move RIGHT"
                     elif class_action == 'picture':
                         frame_RGB=cv2.cvtColor(original_frame, cv2.COLOR_BGR2RGB)
-                        # cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
+                        cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                         picture_counter = 4
                         countdown_started_time = time.time()
                         print("TAKING PICTURE")
@@ -582,6 +603,8 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
                          cv2.imwrite(f'./pictures/image_{i}_{current_time}.jpg', frame_RGB)
                          i += 1
                          signal_picture = True
+                         picture_counter = 4
+                         countdown_started_time = time.time()
                          cmd = "Take PICTURE"
                      elif event.key == pygame.K_t:
                          signal_takeoff = True
