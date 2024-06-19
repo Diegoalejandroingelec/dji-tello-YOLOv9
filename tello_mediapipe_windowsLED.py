@@ -46,7 +46,7 @@ screen_height = 720
 window = pygame.display.set_mode((screen_width,screen_height))
 IMAGE_DIR = './assets/'
 person = '-'
-is_authenticated = True
+is_authenticated = False
 
 """Countdown"""
 picture_counter = -1
@@ -397,10 +397,10 @@ def control_drone():
 
 """  .....  """
 
-# cap = cv2.VideoCapture(0)
-my_drone = Tello()
-my_drone.connect() 
-my_drone.streamon()
+cap = cv2.VideoCapture(0)
+# my_drone = Tello()
+# my_drone.connect() 
+# my_drone.streamon()
 
 
 # Start the get_frame thread
@@ -423,10 +423,7 @@ flying = False
 
 
 model,names,_=load_model(weights,device,imgsz)
-# cap = cv2.VideoCapture(0)
-# my_drone = Tello()
-# my_drone.connect()
-# my_drone.streamon()
+
 
 """PyGAME initialization/configuraiton"""
 # Text attributes for buttons
@@ -485,6 +482,12 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
             face_results = face_mesh.process(image)
             hand_results = hands.process(image)
             
+            """ inferencing with yolo on 640x640 """
+            # frame = apply_blur_except_regions(frame, regions)
+            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            predicted_classes,image = inference(image,model,names,line_thickness=3)
+            # cv2.imshow("Detection frame", im0)
+            
                         
             """ get the face coordinates from mediapipe """
             frame, face_center_x, face_center_y = draw_face_and_hands(image, face_results.multi_face_landmarks, hand_results.multi_hand_landmarks)
@@ -495,12 +498,7 @@ with mp_face_mesh.FaceMesh(min_detection_confidence=0.5, min_tracking_confidence
             frame_h, frame_w, _ = image.shape
             frame_center_x = frame_w // 2
             
-            """ inferencing with yolo on 640x640 """
-            # frame = apply_blur_except_regions(frame, regions)
-            image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            predicted_classes,image = inference(image,model,names,line_thickness=3)
-            # cv2.imshow("Detection frame", im0)
-        
+                    
             # Draw the center line of the frame
             # cv2.line(image, (frame_center_x, 0), (frame_center_x, frame_h), (255, 0, 0), 2)
             # cv2.line(image, (frame_center_x + 120, 0), (frame_center_x + 120, frame_h), (0, 0, 255), 2)

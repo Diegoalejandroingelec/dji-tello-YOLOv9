@@ -99,9 +99,9 @@ def picture_countdown_completed():
     if current_time - countdown_started_time >= 1:
         countdown_started_time = time.time()
         picture_counter -= 1
-        number_to_show=NUMBERS[str(picture_counter)]
+        # number_to_show=NUMBERS[str(picture_counter)]
+        # my_drone.send_expansion_command(f"mled sg {number_to_show}")
         
-        my_drone.send_expansion_command(f"mled sg {number_to_show}")
         if picture_counter <= 0:
             return True, True # Finished, there is a countdown
         return False, True # Not finished, there is a countdown
@@ -373,10 +373,6 @@ flying = False
 
 
 model,names,_=load_model(weights,device,imgsz)
-# cap = cv2.VideoCapture(0)
-# my_drone = Tello()
-# my_drone.connect()
-# my_drone.streamon()
 
 """PyGAME initialization/configuraiton"""
 # Text attributes for buttons
