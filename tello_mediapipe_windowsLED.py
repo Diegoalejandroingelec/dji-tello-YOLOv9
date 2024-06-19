@@ -397,10 +397,10 @@ def control_drone():
 
 """  .....  """
 
-cap = cv2.VideoCapture(0)
-# my_drone = Tello()
-# my_drone.connect() 
-# my_drone.streamon()
+# cap = cv2.VideoCapture(0)
+my_drone = Tello()
+my_drone.connect() 
+my_drone.streamon()
 
 
 # Start the get_frame thread
